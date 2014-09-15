@@ -28,8 +28,9 @@ iter = output.iterations
 V = reshape(x,M,R);
 L = S.*V;
 c = 1;
-[X] = aql(L,c*N,Z);
-fopt = -revenue*X'
+%[X] = aql(L,c*N,Z);
+%fopt = -revenue*X'
+fopt = f
 xopt = reshape(x,M,R)
 
     function [c,ceq] = nnlcon(x)
