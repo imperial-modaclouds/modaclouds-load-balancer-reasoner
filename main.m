@@ -13,54 +13,12 @@ javaaddpath(fullfile(pwd,'lib/haproxy-api.jar'))
 javaaddpath(fullfile(pwd,'lib/json-simple-1.1.1.jar'))
 
 %objectStoreConnector = it.polimi.modaclouds.monitoring.objectstoreapi.ObjectStoreConnector.getInstance;
-%mo = javaObject('it.polimi.modaclouds.qos_models.monitoring_ontology.MO');
-%mo.setKnowledgeBaseURL(objectStoreConnector.getKBUrl);
 
-mode = fscanf(fopen('mode.txt','r'),'%s');
-
-if strcmp(mode,'kb')
-    kbConnector = it.polimi.modaclouds.monitoring.kb.api.KBConnector.getInstance;
-end
 startTime = 0;
 
 while 1
     
-    if (strcmp(mode,'kb') && java.lang.System.currentTimeMillis - startTime > 10000)
-        
-        try
-            sdas = kbConnector.getAll(java.lang.Class.forName('it.polimi.modaclouds.qos_models.monitoring_ontology.StatisticalDataAnalyzer'));
-        catch
-            classLoader = com.mathworks.jmi.ClassLoaderManager.getClassLoaderManager;
-            sdas = kbConnector.getAll(classLoader.loadClass('it.polimi.modaclouds.qos_models.monitoring_ontology.StatisticalDataAnalyzer'));
-        end
-                
-        if ~isempty(sdas)
-            it = sdas.iterator();
-            i = 0;
-            while (it.hasNext)
-                config = it.next;
-                %sdas.get(i).setStarted(true);
-                %kbConnector.add(sdas.get(i));
-                
-                path = char(config.getPath);
-                haproxyIPGold = char(config.haproxyIPGold);
-                haproxyIPSilver = char(config.haproxyIPSilver);
-                frontendNameGold = char(config.frontendNameGold);
-                frontendNameSilver = char(config.frontendNameSilver);
-                algorithm = config.getAlgorithm;
-                period = char(config.getPeriod);
-                
-                i = i + 1;
-            end
-        end
-        
-        if i == 0
-            pause(10);
-            continue;
-        end
-        
-        startTime = java.lang.System.currentTimeMillis;
-    else
+    if java.lang.System.currentTimeMillis - startTime > 10000
         file = 'configuration_LB.xml';
         xDoc = xmlread(file);
         rootNode = xDoc.getDocumentElement.getChildNodes;
@@ -110,9 +68,6 @@ while 1
     
     switch algorithm
         case 'LI'
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % fix later the D once know the architecture
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             if iscolumn(N)
                 N = N';
             end
