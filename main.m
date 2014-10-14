@@ -5,7 +5,6 @@ clear
 
 % the required jar files
 javaaddpath(fullfile(pwd,'lib/commons-lang3-3.1.jar'));
-javaaddpath(fullfile(pwd,'lib/knowledge-base-api-1.0.jar'))
 javaaddpath(fullfile(pwd,'lib/object-store-api-0.1.jar'))
 javaaddpath(fullfile(pwd,'lib/commons-logging-1.1.3.jar'));
 javaaddpath(fullfile(pwd,'lib/httpclient-4.3.5.jar'))
@@ -27,11 +26,6 @@ while 1
         while ~isempty(node)
             if strcmp(node.getNodeName, 'path')
                 path = char(node.getTextContent);
-                try
-                    load(path)
-                catch err
-                    disp(err)
-                end
             end
             if strcmp(node.getNodeName, 'haproxyIPGold')
                 haproxyIPGold = char(node.getTextContent);
@@ -56,6 +50,14 @@ while 1
             end
             node = node.getNextSibling;
         end
+    end
+    
+    try
+        load(path)
+    catch err
+        disp('No file found')
+        pause(5)
+        continue
     end
     
     revenue = str2double(strsplit(revenue,','));
@@ -95,9 +97,9 @@ while 1
         
         success = 1;
         
-        for j = 1:serverIDList{1,s}.size     
+        for j = 1:serverIDList{1,s}.size
             content = httpAPI.sendGet(strcat(IP,'/v1/pools/',frontendList.get(s-1),'/targets/',serverIDList{1,s}.get(j-1)));
-
+            
             if isempty(content)
                 disp('Not correct end server.')
                 break;
@@ -105,7 +107,7 @@ while 1
             
             parser = javaObject('org.json.simple.parser.JSONParser');
             obj = parser.parse(content);
-           
+            
             obj.put('weight',num2str(xopt_int(s,j)));
             temp = obj.get('Address');
             if ~isempty(temp)

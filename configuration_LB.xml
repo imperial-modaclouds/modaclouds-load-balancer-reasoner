@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <loadBalancer>   
-    <path>D:\Dropbox\Modaclouds-SDA\LBData.mat</path>
+    <path>/data/LBData.mat</path>
     <haproxyIPGold>http://10.0.0.101:5000</haproxyIPGold>
     <frontendNameGold>backend_gold</frontendNameGold>
     <haproxyIPSilver>http://10.0.0.102:5000</haproxyIPSilver>
