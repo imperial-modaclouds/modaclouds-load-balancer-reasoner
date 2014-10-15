@@ -1,7 +1,5 @@
 %% main function, requires the configuration file as input
-
-clc
-clear
+function main(file)
 
 % the required jar files
 javaaddpath(fullfile(pwd,'lib/commons-lang3-3.1.jar'));
@@ -18,7 +16,6 @@ startTime = 0;
 while 1
     
     if java.lang.System.currentTimeMillis - startTime > 10000
-        file = 'configuration_LB.xml';
         xDoc = xmlread(file);
         rootNode = xDoc.getDocumentElement.getChildNodes;
         node = rootNode.getFirstChild;
