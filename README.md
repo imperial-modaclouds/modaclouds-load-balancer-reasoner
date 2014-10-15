@@ -15,9 +15,6 @@ sudo ./run_main.sh /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81/ file
 ```
 where the file is the path to the configuration file
 
-```
-sudo ./run_main.sh /usr/local/MATLAB/MATLAB_Compiler_Runtime/v81/
-```
 
 ## Wiki
-For the installation and the details of the Modaclouds-loadBalancer, please refer to the wiki: https://github.com/imperial-modaclouds/modaclouds-loadBalancer/wiki
+For the installation and the details of the Modaclouds-loadBalancer, please refer to the wiki: https://github.com/imperial-modaclouds/modaclouds-load-balancer-reasoner/wiki
