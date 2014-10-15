@@ -1,5 +1,11 @@
-%% main function, requires the configuration file as input
 function main(file)
+% main function for the load balancer reasoner
+%
+% Parameters:
+% file: location of the XML file to parse
+%
+% Copyright (c) 2012-2014, Imperial College London 
+% All rights reserved.
 
 % the required jar files
 javaaddpath(fullfile(pwd,'lib/commons-lang3-3.1.jar'));
@@ -15,6 +21,7 @@ startTime = 0;
 
 while 1
     
+    % parse the XML file
     if java.lang.System.currentTimeMillis - startTime > 10000
         xDoc = xmlread(file);
         rootNode = xDoc.getDocumentElement.getChildNodes;
@@ -49,6 +56,7 @@ while 1
         end
     end
     
+    % if file does not exist, then wait for 5 seconds to check again. 
     try
         load(path)
     catch err
@@ -80,6 +88,7 @@ while 1
     
     xopt_int = round(xopt*100)
     
+    % update the weights in the Haproxy
     for s = 1:frontendList.size
         
         if strcmp(frontendList.get(s-1),frontendNameGold)
