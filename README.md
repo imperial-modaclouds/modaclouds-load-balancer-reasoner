@@ -6,7 +6,7 @@ The release has both the compiled file and source code.
 
 ## How to Compile
 ```
-mcc -m main.m -N -p optim
+mcc -m main.m -N -p optim -p globaloptim
 ```
 
 The way to run the Load balancing reasoner is:
