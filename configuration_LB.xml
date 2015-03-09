@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <loadBalancer>   
-    <path>/data/LBData.mat</path>
-    <haproxyIPGold>http://10.0.0.101:5000</haproxyIPGold>
+    <path>D:\Dropbox\Modaclouds-LoadBalancer\LBData.mat</path>
+    <haproxyIPGold>http://79.125.81.54:5000</haproxyIPGold>
     <frontendNameGold>backend_gold</frontendNameGold>
-    <haproxyIPSilver>http://10.0.0.102:5000</haproxyIPSilver>
+    <haproxyIPSilver>http://54.74.215.207:5000</haproxyIPSilver>
     <frontendNameSilver>backend_silver</frontendNameSilver>
     <revenue>1,1</revenue>
-    <algorithm>Heuristic</algorithm>
-    <period>60</period>
+    <algorithm>LI</algorithm>
+    <period>10</period>
 </loadBalancer>

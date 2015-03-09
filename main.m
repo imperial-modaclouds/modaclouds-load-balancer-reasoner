@@ -1,4 +1,4 @@
-function main(file)
+function main
 % main function for the load balancer reasoner
 %
 % Parameters:
@@ -12,10 +12,27 @@ javaaddpath(fullfile(pwd,'lib/commons-lang3-3.1.jar'));
 javaaddpath(fullfile(pwd,'lib/object-store-api-0.1.jar'))
 javaaddpath(fullfile(pwd,'lib/commons-logging-1.1.3.jar'));
 javaaddpath(fullfile(pwd,'lib/httpclient-4.3.5.jar'))
+javaaddpath(fullfile(pwd,'lib/httpcore-4.3.2.jar'))
 javaaddpath(fullfile(pwd,'lib/haproxy-api.jar'))
 javaaddpath(fullfile(pwd,'lib/json-simple-1.1.1.jar'))
 
-%objectStoreConnector = it.polimi.modaclouds.monitoring.objectstoreapi.ObjectStoreConnector.getInstance;
+% copy libcurl first
+% add in /etc/enviornment
+%  MOSAIC_OBJECT_STORE_ENDPOINT_IP=194.102.62.209
+%  MOSAIC_OBJECT_STORE_ENDPOINT_PORT=20622
+%  MOSAIC_OBJECT_STORE_ENDPOINT_PATH=/v1/collections/c-1/objects/o-3/data
+
+OS_IP = getenv('MOSAIC_OBJECT_STORE_ENDPOINT_IP');
+OS_PORT = getenv('MOSAIC_OBJECT_STORE_ENDPOINT_PORT');
+OS_PATH = getenv('MOSAIC_OBJECT_STORE_ENDPOINT_PATH');
+
+command = strcat('curl -X GET http://',OS_IP,':',OS_PORT,OS_PATH,' | tee configuration_LB.xml')
+
+status = system(command);
+if status ~= 0
+    disp('Error getting the configuration file.')
+    exit
+end
 
 startTime = 0;
 
@@ -23,7 +40,7 @@ while 1
     
     % parse the XML file
     if java.lang.System.currentTimeMillis - startTime > 10000
-        xDoc = xmlread(file);
+        xDoc = xmlread('configuration_LB.xml');
         rootNode = xDoc.getDocumentElement.getChildNodes;
         node = rootNode.getFirstChild;
         
@@ -56,7 +73,6 @@ while 1
         end
     end
     
-    % if file does not exist, then wait for 5 seconds to check again. 
     try
         load(path)
     catch err
@@ -66,12 +82,52 @@ while 1
     end
     
     revenue = str2double(strsplit(revenue,','));
+    if ~strcmp(frontendList.get(0),frontendNameGold)
+        revenue = revenue(end:-1:1);
+    end
     
     value = -1;
+    
+    % check vm availability
+    offline = [];
+    for s = 1:frontendList.size
+        
+        if strcmp(frontendList.get(s-1),frontendNameGold)
+            IP = haproxyIPGold;
+        end
+        if strcmp(frontendList.get(s-1),frontendNameSilver)
+            IP = haproxyIPSilver;
+        end
+        
+        classLoader = com.mathworks.jmi.ClassLoaderManager.getClassLoaderManager;
+        httpAPI = javaObject('imperial.modaclouds.HttpAPI');
+        
+        success = 1;
+        
+        for j = 1:serverIDListAll.size
+            content = httpAPI.sendGet(strcat(IP,'/v1/pools/',frontendList.get(s-1),'/targets/',serverIDListAll.get(j-1),'/check'));
+            
+            if isempty(content)
+                disp('Not correct end server.')
+                break;
+            end
+            
+            parser = javaObject('org.json.simple.parser.JSONParser');
+            obj = parser.parse(content);
+            
+            temp = obj.get('Status');
+            if ~strcmp(temp,'Online')
+                offline = [offline,j];
+            end
+        end
+    end
     
     for s = 1:frontendList.size
         D_combined(:,s) = D{1,s};
     end
+    D_combined(offline,:) = [];
+    
+    D_combined
     
     switch algorithm
         case 'LI'
@@ -103,8 +159,13 @@ while 1
         
         success = 1;
         
-        for j = 1:serverIDList{1,s}.size
-            content = httpAPI.sendGet(strcat(IP,'/v1/pools/',frontendList.get(s-1),'/targets/',serverIDList{1,s}.get(j-1)));
+        count = 0;
+        for j = 1:serverIDListAll.size
+            if ismember(j,offline)
+                count = count + 1;
+                continue
+            end
+            content = httpAPI.sendGet(strcat(IP,'/v1/pools/',frontendList.get(s-1),'/targets/',serverIDListAll.get(j-1)));
             
             if isempty(content)
                 disp('Not correct end server.')
@@ -114,7 +175,17 @@ while 1
             parser = javaObject('org.json.simple.parser.JSONParser');
             obj = parser.parse(content);
             
-            obj.put('weight',num2str(xopt_int(s,j)));
+            if abs(xopt_int(j-count,s)) < 10^-3
+                obj.put('enabled',0);
+            else
+                obj.put('enabled',1);
+            end
+            %if abs(xopt_int(j,s) - 0) < 10^-3
+            %    obj.put('enabled','false');
+            %else
+            %    obj.put('enabled','true');
+            %end
+            obj.put('weight',num2str(xopt_int(j-count,s)));
             temp = obj.get('Address');
             if ~isempty(temp)
                 obj.put('address',temp);
@@ -122,7 +193,7 @@ while 1
             
             obj.toString
             
-            response = httpAPI.sendPut(strcat(IP,'/v1/pools/',frontendList.get(s-1),'/targets/',serverIDList{1,s}.get(j-1)),obj.toString);
+            response = httpAPI.sendPut(strcat(IP,'/v1/pools/',frontendList.get(s-1),'/targets/',serverIDListAll.get(j-1)),obj.toString);
             if isempty(response)
                 disp('Unreachable server');
                 break;
@@ -152,6 +223,7 @@ while 1
             break;
         end
     end
-    pause(period);
     
+    % if file does not exist, then wait for 5 seconds to check again. 
+    pause(period);
 end
