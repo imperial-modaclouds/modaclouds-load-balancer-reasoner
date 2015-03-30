@@ -1,25 +1,13 @@
-function [fopt, xopt, iter] = bcmpoptim_poc_fmincon(S, N, Z, revenue)
+function [fopt, xopt, iter,Q,X] = bcmpoptim_poc_fmincon_ld(S, N, Z, f, F, revenue)
 %% number of variables
-[M,R]=size(S);
+[M,R,~]=size(S);
 n = R*M;
 V = zeros(M,R);
 %% initial point
-%x0 = init_rand(M,R);
-x0 = bcmpoptim_prog_heur1(S, revenue);
-x0 = reshape(x0,1,n);
+x0 = init_rand(M,R);
 
-fastTofast = zeros(M,R);
-[x,y] = find(S==min(S(:)));
-if y(1) == 1
-    fastTofast(:,2) = 1/(M-1);
-    fastTofast(x(1),:) = [1,0];
-else
-    fastTofast(:,1) = 1/(M-1);
-    fastTofast(x(1),:) = [0,1];
-end
-temp(1,:) = reshape(fastTofast,1,n);
-
-for i = 2:5
+%temp(1,:) = x0;
+for i = 1:10
     temp(i,:) = init_rand(M,R);
 end
 
@@ -42,20 +30,19 @@ XUB = ones(size(x0)); % upper bounds on x variables
 
 T0 = tic; % needed for outfun
 %% optimization program
+
 ms=MultiStart('Display','iter','UseParallel','always');
 problem=createOptimProblem('fmincon','objective',@objfun,'x0',x0,'lb',XLB,'ub',XUB,'nonlcon',@nnlcon,'options',options);
+
 [x,~,~,output]=run(ms,problem,x0Set);
 
-%[x, f, ~, output]=fmincon(@objfun,x0,[],[],[],[],XLB,XUB,@nnlcon,options);
-%iter = output.iterations
+iter = output.funcCount
 V = reshape(x,M,R);
 L = S.*V;
-c = 1;
-%[X] = aql(L,c*N,Z);
-%fopt = -revenue*X'
-[X] = amvabs(L,c*N,Z);
-fopt = sum(-revenue*X');
-xopt = reshape(x,M,R)
+
+[Q,X] = amvaqd([Z;L],N,f,F);
+fopt = sum(-revenue*X')
+xopt = reshape(x,M,R);
 
     function [c,ceq] = nnlcon(x)
         V = reshape(x,M,R);
@@ -63,12 +50,13 @@ xopt = reshape(x,M,R)
         ceq = V'*ones(M,1)-1;
     end
 
-    function f = objfun(x)
+    function r = objfun(x)
         V = reshape(x,M,R);
         L = S.*V;
-        c = 1;
-        [X] = amvabs(L,c*N,Z);
-        f = -revenue*X';
+        
+        [~,X]=amvaqd([Z;L],N,f,F);
+        
+        r = -revenue*X';
     end
 
     function x0 = init_rand(M,R)
