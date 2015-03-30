@@ -40,6 +40,7 @@ while 1
     
     % parse the XML file
     if java.lang.System.currentTimeMillis - startTime > 10000
+        %xDoc = xmlread('configuration_LB.xml');
         xDoc = xmlread('configuration_LB.xml');
         rootNode = xDoc.getDocumentElement.getChildNodes;
         node = rootNode.getFirstChild;
@@ -137,9 +138,11 @@ while 1
             if iscolumn(Z)
                 Z = Z';
             end
-            [fbest, xopt] = bcmpoptim_poc_fmincon(D_combined, N, Z, revenue);
+            [fbest, xopt] = bcmpoptim_poc_fmincon_li(D_combined, N, Z, revenue);
         case 'Heuristic'
             xopt = bcmpoptim_prog_heur1(D_combined, revenue);
+        case 'LD'
+            [fbest, xopt] = bcmpoptim_poc_fmincon_ld(D_combined, N, Z, f, F, revenue);
     end
     
     xopt_int = round(xopt*100)
