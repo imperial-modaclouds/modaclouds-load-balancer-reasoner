@@ -24,7 +24,7 @@ javaaddpath(fullfile(pwd,'lib/json-simple-1.1.1.jar'))
 
 OS_IP = getenv('MOSAIC_OBJECT_STORE_ENDPOINT_IP');
 OS_PORT = getenv('MOSAIC_OBJECT_STORE_ENDPOINT_PORT');
-OS_PATH = getenv('MOSAIC_OBJECT_STORE_ENDPOINT_PATH');
+OS_PATH = getenv('MOSAIC_OBJECT_STORE_LB_REASONER_PATH');
 
 command = strcat('curl -X GET http://',OS_IP,':',OS_PORT,OS_PATH,' | tee configuration_LB.xml')
 

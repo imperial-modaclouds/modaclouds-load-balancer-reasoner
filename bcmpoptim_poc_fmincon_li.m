@@ -17,7 +17,12 @@ else
     fastTofast(:,1) = 1/(M-1);
     fastTofast(x(1),:) = [0,1];
 end
-temp(1,:) = reshape(fastTofast,1,n);
+
+if R == 1
+    temp(1,:) = x0;
+else
+    temp(1,:) = reshape(fastTofast,1,n);
+end
 
 for i = 2:5
     temp(i,:) = init_rand(M,R);
