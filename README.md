@@ -18,3 +18,9 @@ where the file is the path to the configuration file
 
 ## Wiki
 For the installation and the details of the Modaclouds-loadBalancer, please refer to the wiki: https://github.com/imperial-modaclouds/modaclouds-load-balancer-reasoner/wiki
+
+##License##
+
+Licensed under the [BSD 3-clause][1]
+
+[1]: http://opensource.org/licenses/BSD-3-Clause
